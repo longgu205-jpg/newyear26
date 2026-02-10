@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>電子賀卡</title>
+
+<style>
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Microsoft JhengHei", sans-serif;
+  overflow: hidden;
+}
+
+#cover, #player {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: opacity 1s ease;
+}
+
+#player {
+  display: none;
+}
+
+#message {
+  display: none;
+  position: absolute;
+  top: 28%;
+  width: 100%;
+  text-align: center;
+  color: white;
+  font-size: 2.2em;
+  line-height: 1.7;
+}
+
+.line {
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  margin-bottom: 10px;
+}
+
+#sign {
+  margin-top: 30px;
+  font-size: 0.7em;
+}
+</style>
+</head>
+
+<body>
+
+<img id="cover" src="cover.jpg">
+<video id="player" playsinline webkit-playsinline></video>
+<audio id="bgm" src="bgm.mp3" loop></audio>
+
+<div id="message">
+  <div class="line">去年再難也過去了，新的一年重新開始。</div>
+  <div class="line">祝大家把壓力放下，把健康和好運留下，</div>
+  <div class="line">從今天開始，日子越過越順，心也越來越亮。</div>
+  <div class="line">&nbsp;</div>
+  <div class="line">祝大家 新年快樂～</div>
+  <div class="line" id="sign">金永</div>
+</div>
+
+<script>
+const videos = ["V1.mp4", "V2.mp4", "V3.mp4", "V4.mp4"];
+let index = 0;
+
+const cover = document.getElementById("cover");
+const player = document.getElementById("player");
+const bgm = document.getElementById("bgm");
+const message = document.getElementById("message");
+const lines = document.querySelectorAll(".line");
+
+// 淡入
+function fadeIn(el) {
+  el.style.display = "block";
+  el.style.opacity = 0;
+  setTimeout(() => el.style.opacity = 1, 50);
+}
+
+// 淡出
+function fadeOut(el, callback) {
+  el.style.opacity = 0;
+  setTimeout(() => {
+    el.style.display = "none";
+    if (callback) callback();
+  }, 1000);
+}
+
+// 背景音樂慢慢淡出
+function fadeOutBgm(duration = 5000) {
+  const step = 0.05;
+  const interval = duration / (bgm.volume / step);
+
+  const fade = setInterval(() => {
+    if (bgm.volume > step) {
+      bgm.volume -= step;
+    } else {
+      bgm.volume = 0;
+      bgm.pause();
+      clearInterval(fade);
+    }
+  }, interval);
+}
+
+// 一行一行顯示祝福文字
+function showLines() {
+  message.style.display = "block";
+
+  lines.forEach((line, i) => {
+    setTimeout(() => {
+      line.style.opacity = 1;
+    }, i * 1200);
+  });
+
+  const totalLinesTime = lines.length * 1200;
+
+  // 全部出現後停 5 秒
+  setTimeout(() => {
+    fadeOutBgm(5000);
+
+    // 音樂淡出 3 秒後嘗試關閉視窗
+    setTimeout(() => {
+      window.close();
+    }, 3000);
+
+  }, totalLinesTime + 5000);
+}
+
+// 播下一支影片
+function playNext() {
+  if (index >= videos.length) {
+    showLines();
+    return;
+  }
+
+  player.src = videos[index];
+  fadeIn(player);
+  player.play();
+  index++;
+}
+
+// 點封面開始
+cover.addEventListener("click", () => {
+  cover.style.display = "none";
+  bgm.volume = 0.6;
+  bgm.play();
+  playNext();
+});
+
+// 每支影片播完
+player.addEventListener("ended", () => {
+  fadeOut(player, playNext);
+});
+</script>
+
+</body>
+</html>
